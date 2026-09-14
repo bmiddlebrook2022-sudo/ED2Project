@@ -20,6 +20,39 @@ const statusMeta = {
   watched: { label: 'Watched', accent: 'success' },
 }
 
+const parseRating = (value) => {
+  if (value === '' || value === null || value === undefined) return null
+
+  const rating = Math.round(Number(value) * 10) / 10
+  return Number.isFinite(rating) ? rating : null
+}
+
+const formatRatingLabel = (value) => {
+  const rating = Number(value)
+  if (!Number.isFinite(rating)) return 'No rating yet'
+  return `${rating.toFixed(1)}/10`
+}
+
+const describeWatchlistError = (error, action) => {
+  const message = error?.message || ''
+  const lowerMessage = message.toLowerCase()
+  const code = error?.code || ''
+
+  if (code === '42501' || lowerMessage.includes('permission denied')) {
+    return 'Supabase is blocking this because signed-in users were never granted table access. Open the SQL Editor, run supabase-schema.sql (especially the GRANT statements), then try again.'
+  }
+
+  if (
+    lowerMessage.includes('row-level security') ||
+    lowerMessage.includes('row level security') ||
+    lowerMessage.includes('not allowed to')
+  ) {
+    return `Supabase Row Level Security blocked this ${action}. Run the policies in supabase-schema.sql and stay signed in.`
+  }
+
+  return message
+}
+
 function App() {
   const [authMode, setAuthMode] = useState('sign-in')
   const [authForm, setAuthForm] = useState({
@@ -63,6 +96,7 @@ function App() {
 
     if (movieError) {
       const message = movieError.message || ''
+
       if (
         message.includes('could not find public.movie_watchlist in the schema cache') ||
         message.includes('does not exist') ||
@@ -73,7 +107,7 @@ function App() {
         )
         setMovies([])
       } else {
-        setError(message)
+        setError(describeWatchlistError(movieError, 'read'))
         setMovies([])
       }
     } else {
@@ -300,12 +334,19 @@ function App() {
       return
     }
 
+    const rating = parseRating(movieForm.rating)
+
+    if (movieForm.rating !== '' && (rating === null || rating < 0 || rating > 10)) {
+      setError('Rating must be a number between 0 and 10. Decimals like 8.7 are allowed.')
+      return
+    }
+
     const payload = {
       user_id: session.user.id,
       title,
       genre: movieForm.genre.trim() || 'General',
       year: movieForm.year ? Number(movieForm.year) : null,
-      rating: movieForm.rating ? Number(movieForm.rating) : null,
+      rating,
       status: movieForm.status,
       watched: Boolean(movieForm.watched),
       notes: movieForm.notes.trim(),
@@ -322,7 +363,7 @@ function App() {
           .eq('user_id', session.user.id)
 
         if (updateError) {
-          setError(updateError.message)
+          setError(describeWatchlistError(updateError, 'update'))
           return
         }
 
@@ -331,7 +372,7 @@ function App() {
         const { error: insertError } = await supabase.from('movie_watchlist').insert([payload])
 
         if (insertError) {
-          setError(insertError.message)
+          setError(describeWatchlistError(insertError, 'insert'))
           return
         }
 
@@ -374,7 +415,7 @@ function App() {
       .eq('user_id', session.user.id)
 
     if (deleteError) {
-      setError(deleteError.message)
+      setError(describeWatchlistError(deleteError, 'delete'))
       return
     }
 
@@ -397,7 +438,7 @@ function App() {
       .eq('user_id', session.user.id)
 
     if (updateError) {
-      setError(updateError.message)
+      setError(describeWatchlistError(updateError, 'update'))
       return
     }
 
@@ -633,10 +674,11 @@ function App() {
                       name="rating"
                       min="0"
                       max="10"
-                      step="0.5"
+                      step="any"
+                      inputMode="decimal"
                       value={movieForm.rating}
                       onChange={handleMovieFieldChange}
-                      placeholder="8.5"
+                      placeholder="8.7"
                     />
                   </label>
 
@@ -726,7 +768,7 @@ function App() {
                           {movie.notes && <p className="movie-notes">{movie.notes}</p>}
 
                           <div className="movie-details">
-                            <span>⭐ {movie.rating ? `${movie.rating}/10` : 'No rating yet'}</span>
+                            <span>⭐ {formatRatingLabel(movie.rating)}</span>
                             <span>{movie.watched ? 'Watched' : 'Not watched yet'}</span>
                           </div>
 
