@@ -1,46 +1,41 @@
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-
 # Movie Watchlist
 
-A simple movie watchlist app built with React + Vite and connected to Supabase for authentication and persistent watchlist storage.
+Movie Watchlist is a personal cinema log. Sign in, save movies you want to see, rate them, and track what you have already watched. Each account has its own private list.
 
-## Features
+Link to deployed website: https://ed2projectbmiddlebrook2022.netlify.app
+Youtube video demonstration: 
 
-- Register, sign in, and sign out with Supabase Auth
-- CRUD for movies in a personal watchlist
-- Mark movies as watched or plan-to-watch
-- Edit and delete entries from the dashboard
-- Real-time session handling using Supabase
+## What it does
+
+After you create an account, you get a dashboard with counts for total movies, watched, and still to watch.
+
+You can add a movie by typing the details yourself, or search the movie database to fill in the title, year, genre, IMDb rating, poster, and plot. Ratings can be decimals such as `8.7/10`. Each entry can be marked plan to watch, watching, or watched, plus optional notes.
+
+From the list you can edit a movie, delete it, or toggle watched. Your data is stored in Supabase, so it is still there the next time you sign in. Row Level Security keeps one user’s movies hidden from everyone else.
+
+## Stack
+
+- React and Vite for the app
+- Supabase Auth for register, sign in, and sign out
+- Supabase Postgres (`movie_watchlist`) for storage
+- OMDB for title search and posters
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and fill in your Supabase project values.
-2. Open the Supabase SQL Editor and run the full script in `supabase-schema.sql`. That script creates the table, grants signed-in users access, sets Row Level Security policies, and allows ratings such as `8.7`.
+1. Copy `.env.example` to your `.env` and set your own credentials:
+
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_OMDB_API_KEY` (needed for search and posters)
+
+2. In the Supabase SQL Editor, run `supabase-schema.sql`. That creates the table, grants signed-in users access, and enables the security policies.
 
 3. Start the app:
 
 ```bash
 npm install
-npm run dev -- --host 0.0.0.0
+npm run dev
 ```
 
-4. Open the local Vite URL shown in the terminal.
+4. Open the local URL Vite prints in the terminal.
 
-## Notes
-
-The project is already configured to use the values in `.env` if they are present. The app will show a warning if Supabase is not configured yet.
