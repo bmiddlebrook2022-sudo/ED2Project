@@ -3,7 +3,7 @@
 Movie Watchlist is a personal cinema log. Sign in, save movies you want to see, rate them, and track what you have already watched. Each account has its own private list.
 
 Link to deployed website: https://ed2projectbmiddlebrook2022.netlify.app
-Youtube video demonstration: 
+Youtube video demonstration: https://youtu.be/Nyih7u5vExY?si=VpCv_0h7Eia7jD_1 
 
 ## What it does
 
